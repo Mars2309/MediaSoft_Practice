@@ -1,4 +1,4 @@
-Код UML модели создания и оплаты заказа:
+1.                                  Код UML модели создания и оплаты заказа:
 
 @startuml
 participant Client as c
@@ -112,7 +112,7 @@ deactivate c
 
 
 
-Код модели UML редактирование личной информации
+2.                                 Код модели UML редактирование личной информации
 
 @startuml
 participant Client as c
@@ -148,3 +148,368 @@ deactivate f
 activate c
 deactivate c
 @enduml
+
+
+
+
+3.                                   Код модели UML Отмена бронирования
+
+@startuml
+participant Client as c
+participant DanceLabSite as f
+participant Backend as b
+participant DataBase as db
+participant Payment as p
+
+activate c
+c -> f : Клиент хочет отменить бронирование
+deactivate c
+
+activate f
+f -> b: Запрос на поиск брони 
+
+activate b
+
+b -> db: Поиск брони клиента по ID_Клиента
+
+activate db
+db -> db: Поиск брони по ID_Клиента
+db --> b: Вывод брони клиента
+deactivate db
+
+b --> f: Вывод брони клиента
+deactivate b
+f --> c: Отображение брони клиента
+activate c
+f -->c: Запрос на подтверждение отмены брони
+
+c ->> f: Подтверждение отмены брони
+
+deactivate c
+
+f->b: Отправляет запрос на отмену брони
+deactivate f
+activate b
+b -> db: Поиск данных оплаты
+activate db
+db --> b: Данные об оплате по ID_Клиента
+deactivate db
+
+b->>p:Запрос на возврат средств по ID_Клиента оплаты
+activate p
+p->>p:Операция по возвращению средств
+
+p -->> b: Обновление статуса заказа
+deactivate p
+
+b->db: Отмена брони
+activate db
+db -> db: Удаление брони
+db --> b: Бронь удалена
+deactivate db
+
+
+b --> f: Бронирование удалено
+deactivate b
+activate f
+deactivate b
+f-->c:Бронь успешно удалена
+deactivate f
+activate c
+c->c:Просмотр ЛК
+deactivate c
+
+@enduml
+
+
+
+4.                                 Код модели UML Редактирование заказа (уже оплаченного)
+
+@startuml
+participant Client as c
+participant DanceLabSite as f
+participant Backend as b
+participant DataBase as db
+participant Payment as p
+participant AntiFrod as a
+
+activate c
+c->f: Клиент хочет изменить бронирование
+deactivate c
+activate f
+
+
+f -> b: Запрос на поиск брони 
+deactivate f
+
+activate b
+
+b -> db: Поиск брони клиента по ID_Клиента
+
+activate db
+db -> db: Поиск брони по ID_Клиента
+db --> b: Вывод брони клиента
+deactivate db
+
+b --> f: Вывод брони клиента
+activate f
+deactivate b
+f --> c: Отображение брони клиента
+activate c
+f -->c: Опция добавления позиции в бронь
+
+c -> f : Клиент выбирает стиль танца
+deactivate c
+
+f -> b: Запрос на поиск доступных занятий
+deactivate f
+activate b
+
+b -> db: Поиск доступных занятий
+
+activate db
+db --> b: Вывод доступных занятий
+deactivate db
+
+b --> f: Вывод доступных занятий
+deactivate b
+activate f
+
+f --> c: Отображение доступных занятий
+activate c
+
+c -> f: Выбирает удобное занятие
+f --> c: Отправляет запрос на подтверждение выбора
+
+c -> f: Подтверждает выбор
+deactivate c
+
+
+f->b: Отправляет запрос на добавлене позиции к брони
+deactivate f
+activate b
+
+
+b->db: Изменение  брони
+activate db
+db --> b: Обновление брони
+deactivate db
+
+
+b --> f: Бронирование обновлено, требуется оплата
+deactivate b
+activate f
+deactivate b
+
+f -> p: Переход к платежной форме
+deactivate f
+
+activate p
+p --> c: Отображение формы оплаты
+activate c
+
+c -> p: Ввод реквизитов платежной карты
+deactivate c
+
+p ->> a: Проверка платежа
+activate a
+
+alt Реквизиты корректны?
+a -->> p: Реквизиты корректны
+deactivate a
+
+
+p -> p: Списание оплаты
+p --> f: Обновление статуса заказа
+deactivate p
+activate f
+
+
+f -> b: Измененить статус заказа на "Оплачено"
+deactivate f
+activate b
+
+b -> db
+activate db
+
+db -> db: Изменение статуса оплаты
+
+db --> b : Изменение статуса оплаты
+deactivate db
+
+b --> f : Изменение статуса оплаты
+deactivate b
+activate f
+f --> c: Оплата прошла успешно
+deactivate f
+activate c
+c->c: Просмотр брони, куда добавлена новая позиция
+deactivate c
+
+else Реквизиты некорректны
+activate a
+a ->> p: Реквизиты некорректны, оплата не прошла
+deactivate a
+
+activate p
+p -> c: Произошла ошибка, проверьте корректность введенных данных
+deactivate p
+activate c
+deactivate c
+
+
+@enduml
+
+
+
+5.          Код модели UML Редактирование заказа (еще не оплаченного)
+
+@startuml
+participant Client as c
+participant DanceLabSite as f
+participant Backend as b
+participant DataBase as db
+participant Payment as p
+participant AntiFrod as a
+
+activate c
+c -> f : Клиент выбирает стиль танца
+deactivate c
+activate f
+
+f -> b: Запрос на поиск доступных занятий
+
+deactivate f
+activate b
+
+b -> db: Поиск доступных занятий
+
+activate db
+db --> b: Вывод доступных занятий
+deactivate db
+
+b --> f: Вывод доступных занятий
+deactivate b
+activate f
+
+f --> c: Отображение доступных занятий
+activate c
+
+c -> f: Выбирает удобное занятие
+f --> c: Отправляет запрос на подтверждение выбора
+
+c -> f: Подтверждает выбор
+
+c->f: Клиент хочет добавить позицию к брони
+deactivate c
+
+loop
+
+f->b: Отправляет запрос на добавлене позиции к брони
+
+activate b
+b -> f: Добавление позиции
+
+activate c
+c -> f : Клиент выбирает стиль танца
+deactivate c
+
+
+f -> b: Запрос на поиск доступных занятий
+
+
+deactivate f
+
+
+b -> db: Поиск доступных занятий
+
+activate db
+db --> b: Вывод доступных занятий
+deactivate db
+
+b --> f: Вывод доступных занятий
+deactivate b
+activate f
+
+f --> c: Отображение доступных занятий
+activate c
+
+c -> f: Выбирает удобное занятие
+f --> c: Отправляет запрос на подтверждение выбора
+
+c -> f: Подтверждает выбор
+
+
+f->b: Отправляет запрос на обновление брони
+deactivate f
+activate b
+
+b->db: Изменение  брони
+activate db
+db --> b: Обновление брони
+deactivate db
+
+b --> f: Бронирование обновлено, требуется оплата
+deactivate b
+activate f
+deactivate b
+
+f -> p: Переход к платежной форме
+deactivate f
+
+activate p
+p --> c: Отображение формы оплаты
+activate c
+
+c -> p: Ввод реквизитов платежной карты
+deactivate c
+
+p ->> a: Проверка платежа
+activate a
+
+alt Реквизиты корректны?
+a -->> p: Реквизиты корректны
+deactivate a
+
+
+p -> p: Списание оплаты
+p --> f: Обновление статуса заказа
+deactivate p
+activate f
+
+
+f -> b: Измененить статус заказа на "Оплачено"
+deactivate f
+activate b
+
+b -> db
+activate db
+
+db -> db: Изменение статуса оплаты
+
+db --> b : Изменение статуса оплаты
+deactivate db
+
+b --> f : Изменение статуса оплаты
+deactivate b
+activate f
+f --> c: Оплата прошла успешно
+deactivate f
+activate c
+c->c: Просмотр брони, куда добавлена новая позиция
+deactivate c
+
+else Реквизиты некорректны
+activate a
+a ->> p: Реквизиты некорректны, оплата не прошла
+deactivate a
+
+activate p
+p -> c: Произошла ошибка, проверьте корректность введенных данных
+deactivate p
+activate c
+deactivate c
+
+
+@enduml
+
