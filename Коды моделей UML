@@ -1,0 +1,150 @@
+Код UML модели создания и оплаты заказа:
+
+@startuml
+participant Client as c
+participant DanceLabSite as f
+participant Backend as b
+participant DataBase as db
+participant Payment as p
+participant Antifrod as a
+
+activate c
+c -> f : Клиент заходит на сайт и выбирает стиль танца
+deactivate c
+
+activate f
+f -> b: Запрос на поиск доступных занятий
+
+activate b
+
+b -> db: Поиск доступных занятий
+
+activate db
+db --> b: Вывод доступных занятий
+deactivate db
+
+b --> f: Вывод доступных занятий
+deactivate b
+f --> c: Отображение доступных занятий
+activate c
+
+c -> f: Выбирает удобное занятие
+f --> c: Отправляет запрос на подтверждение выбора
+
+c -> f: Подтверждает выбор
+deactivate c
+
+f->b: Отправляет запрос на создание брони
+deactivate f
+activate b
+
+
+b->db: Создание брони
+activate db
+db --> b: Предварительная бронь создана
+deactivate db
+
+
+b --> f: Бронирование создано, требуется оплата
+deactivate b
+activate f
+deactivate b
+
+f -> p: Переход к платежной форме
+deactivate f
+
+activate p
+p --> c: Отображение формы оплаты
+activate c
+
+c -> p: Ввод реквизитов платежной карты
+deactivate c
+
+p ->> a: Проверка платежа
+activate a
+
+alt Реквизиты корректны?
+a -->> p: Реквизиты корректны
+deactivate a
+
+
+p -> p: Списание оплаты
+p --> f: Обновление статуса заказа
+deactivate p
+activate f
+
+
+f -> b: Измененить статус заказа на "Оплачено"
+deactivate f
+activate b
+
+b -> db
+activate db
+
+db -> db: Изменение статуса оплаты
+
+db --> b : Изменение статуса оплаты
+deactivate db
+
+b --> f : Изменение статуса оплаты
+deactivate b
+activate f
+f --> c: Оплата прошла успешно
+deactivate f
+activate c
+c->c: Просмотр брони
+deactivate c
+
+else Реквизиты некорректны
+activate a
+a ->> p: Реквизиты некорректны, оплата не прошла
+deactivate a
+
+activate p
+p -> c: Произошла ошибка, проверьте корректность введенных данных
+deactivate p
+activate c
+deactivate c
+
+@enduml
+
+
+
+
+
+Код модели UML редактирование личной информации
+
+@startuml
+participant Client as c
+participant DanceLabSite as f
+participant Backend as b
+participant DataBase as db
+
+
+activate c
+c -> f : Клиент хочет изменить личные данные
+
+activate f
+f-->c: Запрос по подтверждение изменения данных
+c->f: Подтверждение изменения данных
+deactivate c
+f -> b: Запрос на изменение данных
+deactivate f
+
+activate b
+
+b -> db: Изменение данных
+activate db
+db->db: Изменение личных данных клиента
+
+db --> b: Данные успешно изменены
+deactivate db
+
+b --> f: Данные в ЛК клиента успешно изменены
+activate f
+deactivate b
+f --> c: Уведомление об успешном изменении данных
+deactivate f
+activate c
+deactivate c
+@enduml
